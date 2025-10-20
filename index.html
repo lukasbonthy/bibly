@@ -1,42 +1,573 @@
 <!DOCTYPE html>
-<html lang="en" class="">
+<html lang="en" class="no-js">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bible • Love • Rose</title>
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <meta name="description" content="A modern, dark-themed single-page site inspired by scripture, love, and the rose of Sharon." />
+  <meta id="theme-color" name="theme-color" content="#111111" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- Paint theme BEFORE render to avoid flash -->
+  <script>
+    (function () {
+      try {
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const useDark = saved ? saved === 'dark' : prefersDark;
+        document.documentElement.classList.toggle('dark', !!useDark);
+        document.documentElement.classList.remove('no-js');
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    /* --------------------------
+       THEME & TOKENS
+    --------------------------- */
+    :root{
+      --bg: #f9fafb;
+      --bg-2:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --rose-300:#f8b4c6;
+      --rose-500:#f18ca1;
+      --rose-600:#d36b7c;
+      --rose-700:#b94e62;
+      --card:#ffffffb3;            /* glass */
+      --card-stroke:#00000010;
+      --ring:#f18ca150;
+      --shadow: 0 10px 30px rgba(0,0,0,.12);
+      --radius:14px;
+      --grad: linear-gradient(135deg, var(--rose-500), var(--rose-700));
+      --hero-grad: radial-gradient(1200px 400px at 20% -10%, #f18ca125 0%, transparent 60%),
+                   radial-gradient(900px 300px at 110% 10%, #b94e6220 0%, transparent 60%),
+                   linear-gradient(180deg,#ffffff, #f9fafb);
+    }
+    .dark:root{
+      --bg:#0f1115;
+      --bg-2:#0b0d11;
+      --text:#e7e9ee;
+      --muted:#98a2b3;
+      --card:#0b0d1199;            /* glass */
+      --card-stroke:#ffffff1a;
+      --ring:#f18ca155;
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
+      --hero-grad: radial-gradient(1200px 400px at 15% -10%, #f18ca11f 0%, transparent 60%),
+                   radial-gradient(900px 300px at 110% 10%, #b94e6218 0%, transparent 60%),
+                   linear-gradient(180deg,#0f1115,#0b0d11);
+    }
+
+    /* --------------------------
+       RESET + BASE
+    --------------------------- */
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+      color:var(--text);
+      background:var(--bg);
+      line-height:1.6;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      text-rendering:optimizeLegibility;
+    }
+    img{max-width:100%; display:block}
+    a{color:inherit; text-decoration:none}
+    :focus-visible{outline:2px solid var(--rose-500); outline-offset:2px}
+
+    .container{width:min(1100px, 92vw); margin-inline:auto}
+
+    /* --------------------------
+       HEADER (sticky + glass)
+    --------------------------- */
+    .header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      background:color-mix(in oklab, var(--bg-2) 70%, transparent);
+      border-bottom:1px solid var(--card-stroke);
+    }
+    .nav{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 10px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:.8rem;
+      font-family:"Playfair Display", serif;
+      letter-spacing:.3px;
+    }
+    .brand .logo{
+      width:34px; height:34px; border-radius:50%;
+      background: var(--grad); display:grid; place-items:center;
+      box-shadow: 0 6px 16px #f18ca144;
+    }
+    .brand .logo svg{width:20px; height:20px; fill:white}
+    .brand .title{font-weight:700; font-size:1.1rem}
+    .nav-actions{display:flex; align-items:center; gap:.6rem}
+    .btn{
+      display:inline-flex; align-items:center; gap:.5rem;
+      border:1px solid var(--card-stroke);
+      background: var(--bg-2);
+      color:var(--text);
+      padding:.6rem .9rem; border-radius:10px;
+      box-shadow: var(--shadow);
+      transition: transform .2s ease, border-color .2s ease, background .2s ease;
+    }
+    .btn:hover{ transform: translateY(-1px) }
+    .btn-rose{
+      background:var(--grad); color:#fff; border-color:transparent;
+      box-shadow: 0 10px 24px #f18ca129;
+    }
+    .icon{
+      width:18px; height:18px; display:inline-block
+    }
+
+    /* --------------------------
+       HERO
+    --------------------------- */
+    .hero{
+      background: var(--hero-grad);
+      padding: clamp(3rem, 5vw, 5rem) 0;
+      position:relative; overflow:hidden;
+      border-bottom:1px solid var(--card-stroke);
+    }
+    .grid{
+      display:grid; grid-template-columns: 1.05fr .95fr;
+      gap: clamp(1.2rem, 3vw, 2.5rem);
+      align-items:center;
+    }
+    @media (max-width: 900px){ .grid{ grid-template-columns:1fr; } }
+
+    .headline{
+      font-family:"Playfair Display", serif;
+      font-size: clamp(2.2rem, 3.6vw, 3.2rem);
+      line-height:1.15; margin:0 0 .6rem;
+      letter-spacing:.2px;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .sub{
+      color:var(--muted); font-size: clamp(1rem, 1.5vw, 1.125rem);
+      max-width: 50ch; margin: 0 0 1.2rem;
+    }
+    .hero-card{
+      background: var(--card);
+      border:1px solid var(--card-stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: clamp(1rem, 3vw, 1.5rem);
+      backdrop-filter: blur(6px);
+    }
+
+    /* Decorative rose ring */
+    .rose-ring{
+      position:absolute; inset:auto auto -140px -120px; width:420px; height:420px; pointer-events:none; opacity:.25;
+      background: radial-gradient(closest-side, #f18ca155 0 45%, transparent 47%),
+                  conic-gradient(from 0deg at 50% 50%, #f18ca140, #b94e6230, #f18ca140);
+      filter: blur(12px);
+      border-radius:50%;
+    }
+    .dark .rose-ring{ opacity:.35 }
+
+    /* --------------------------
+       VERSE CAROUSEL
+    --------------------------- */
+    .section{ padding: clamp(2.5rem, 4vw, 3.5rem) 0 }
+    .section h3{
+      font-family: "Playfair Display", serif;
+      font-size: clamp(1.4rem, 2.2vw, 1.8rem);
+      margin:0 0 .8rem;
+      color: var(--rose-500);
+    }
+    .carousel{
+      position:relative;
+      overflow:hidden;
+      border:1px solid var(--card-stroke);
+      border-radius: var(--radius);
+      background: color-mix(in oklab, var(--bg-2) 90%, transparent);
+      box-shadow: var(--shadow);
+    }
+    .slides{
+      display:grid; grid-auto-flow: column; grid-auto-columns: 100%;
+      transition: transform .6s cubic-bezier(.22,1,.36,1);
+    }
+    .slide{
+      padding: clamp(1rem, 4vw, 2rem);
+      min-height: 170px;
+      display:grid; align-content:center; justify-items:center; text-align:center;
+      gap:.6rem;
+    }
+    blockquote{
+      margin:0; font-size: clamp(1.05rem, 2vw, 1.25rem);
+      font-weight:600;
+    }
+    cite{ color:var(--muted); font-style:normal }
+    .controls{
+      position:absolute; inset:auto 0 .6rem 0; display:flex; justify-content:center; gap:.6rem;
+    }
+    .dot{
+      width:9px; height:9px; border-radius:999px; background:#cbd5e1; border:1px solid var(--card-stroke);
+      transition:transform .2s ease, background .2s ease;
+    }
+    .dot[aria-current="true"]{ background:var(--rose-600); transform: scale(1.25) }
+
+    .car-btn{
+      position:absolute; top:50%; translate:0 -50%;
+      width:38px; height:38px; border-radius:10px; border:1px solid var(--card-stroke);
+      background: var(--bg-2); color: var(--text);
+      display:grid; place-items:center; box-shadow: var(--shadow);
+      transition: transform .2s ease;
+    }
+    .car-btn:hover{ transform: translateY(-2px) }
+    .car-prev{ left:.6rem } .car-next{ right:.6rem }
+
+    /* --------------------------
+       FEATURE CARDS
+    --------------------------- */
+    .features{
+      display:grid; grid-template-columns: repeat(3, 1fr); gap:1.2rem;
+    }
+    @media (max-width: 900px){ .features{ grid-template-columns: 1fr; } }
+
+    .card{
+      position:relative; overflow:hidden;
+      border-radius: var(--radius);
+      border:1px solid var(--card-stroke);
+      background: color-mix(in oklab, var(--bg-2) 90%, transparent);
+      box-shadow: var(--shadow);
+      padding: 1.2rem;
+      transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .card:hover{ transform: translateY(-4px); box-shadow: 0 20px 50px rgba(0,0,0,.18) }
+    .card h4{ margin:.2rem 0 .4rem; font-size:1.05rem }
+    .badge{
+      display:inline-block; font-size:.75rem; padding:.25rem .5rem; border-radius:999px;
+      color:#fff; background: var(--grad); box-shadow: 0 8px 22px #f18ca122;
+    }
+    .card p{ color:var(--muted); margin:.4rem 0 0 }
+
+    /* --------------------------
+       NEWSLETTER
+    --------------------------- */
+    .newsletter{
+      display:grid; grid-template-columns: 1.2fr .8fr; gap:1.2rem; align-items:center;
+      border:1px solid var(--card-stroke);
+      border-radius: var(--radius);
+      padding: clamp(1rem, 3.5vw, 1.6rem);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+    @media (max-width: 900px){ .newsletter{ grid-template-columns:1fr } }
+
+    .form{
+      display:flex; gap:.6rem; flex-wrap:wrap;
+    }
+    .input{
+      flex:1 1 260px;
+      border:1px solid var(--card-stroke);
+      background: var(--bg-2); color:var(--text);
+      padding:.8rem .9rem; border-radius:10px; font-size:1rem;
+      outline:none; transition:border-color .2s ease, box-shadow .2s ease;
+    }
+    .input:focus{
+      border-color:var(--rose-500);
+      box-shadow: 0 0 0 6px var(--ring);
+    }
+    .hint{ color: var(--muted); font-size:.9rem; margin-top:.3rem }
+
+    /* --------------------------
+       FOOTER
+    --------------------------- */
+    .footer{
+      margin-top: 2.5rem;
+      padding: 1.6rem 0;
+      border-top:1px solid var(--card-stroke);
+      color: var(--muted);
+      font-size:.95rem;
+      text-align:center;
+    }
+
+    /* Accessibility helpers */
+    .sr-only{
+      position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+    }
+
+    /* Motion-sensitive users */
+    @media (prefers-reduced-motion: reduce){
+      .slides{ transition:none }
+      .btn, .card, .cta, .car-btn{ transition:none }
+    }
+  </style>
 </head>
+
 <body>
-  <header class="site-header">
-    <h1>Bible • Love • Rose</h1>
-    <button id="theme-toggle" class="theme-btn">🌙</button>
+  <!-- ===================== HEADER ===================== -->
+  <header class="header">
+    <nav class="nav container" aria-label="Primary">
+      <a href="#top" class="brand">
+        <span class="logo" aria-hidden="true">
+          <!-- Inline rose icon -->
+          <svg viewBox="0 0 24 24" role="img" aria-label="Rose emblem">
+            <path d="M12 2c2.5 0 4.5 2 4.5 4.5S14.5 11 12 11 7.5 9 7.5 6.5 9.5 2 12 2zM5 13c2.2 0 4 1.8 4 4v1H7a4 4 0 0 1-4-4v-1h2zm14 0h2v1a4 4 0 0 1-4 4h-2v-1c0-2.2 1.8-4 4-4zM9 18h6v2a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-2z"/>
+          </svg>
+        </span>
+        <span class="title">Bible • Love • Rose</span>
+      </a>
+
+      <div class="nav-actions">
+        <button id="themeToggle" class="btn" type="button" aria-pressed="false" title="Toggle dark mode">
+          <span class="icon" aria-hidden="true" id="themeIcon">🌙</span>
+          <span class="sr-only">Toggle theme</span>
+        </button>
+        <a href="#newsletter" class="btn btn-rose">Get Inspired</a>
+      </div>
+    </nav>
   </header>
 
-  <main class="hero">
-    <div class="hero-text">
-      <h2>Faith. Love. Beauty.</h2>
-      <p>Let your soul bloom in the wisdom of the Word and the fragrance of grace.</p>
-      <a href="#" class="cta-btn">Get Inspired</a>
-    </div>
-    <div class="hero-img">
-      <img src="https://source.unsplash.com/700x500/?bible,rose" alt="Rose and Bible" />
-    </div>
-  </main>
+  <!-- ===================== HERO ===================== -->
+  <section class="hero" id="top">
+    <div class="container grid">
+      <div>
+        <h1 class="headline">Faith. Love. Beauty.</h1>
+        <p class="sub">Let your soul bloom in the wisdom of the Word and the fragrance of grace. Quiet your heart, reflect deeply, and carry light into your day.</p>
 
-  <section class="scripture">
-    <h3>Scriptures That Bloom</h3>
-    <ul>
-      <li>“I am the rose of Sharon, and the lily of the valleys.” – Song of Solomon 2:1</li>
-      <li>“Above all, love each other deeply…” – 1 Peter 4:8</li>
-      <li>“Your word is a lamp to my feet…” – Psalm 119:105</li>
-    </ul>
+        <div class="hero-card" role="note" aria-label="Daily Scripture">
+          <strong style="display:block; margin-bottom:.35rem; font-family:'Playfair Display', serif;">Daily Scripture</strong>
+          <p style="margin:0">
+            “I am the rose of Sharon, and the lily of the valleys.” <em>— Song of Solomon 2:1</em>
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <!-- Decorative card acting as visual hero image substitute (no external assets) -->
+        <div class="hero-card" style="aspect-ratio: 16/11; display:grid; place-items:center; position:relative; overflow:hidden">
+          <svg viewBox="0 0 600 420" width="100%" height="100%" aria-hidden="true">
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#f18ca1"/>
+                <stop offset="1" stop-color="#b94e62"/>
+              </linearGradient>
+              <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="6"/>
+              </filter>
+            </defs>
+            <rect width="600" height="420" rx="18" fill="url(#g)" opacity=".10"/>
+            <g transform="translate(300 210)">
+              <g transform="scale(2.5)">
+                <path d="M0-40c14 0 26 12 26 26S14 12 0 12s-26-12-26-26S-14-40 0-40z" fill="url(#g)" opacity=".7" filter="url(#soft)"/>
+              </g>
+              <g>
+                <circle r="98" fill="none" stroke="#f18ca155" stroke-width="2"/>
+                <circle r="72" fill="none" stroke="#f18ca133" stroke-width="2"/>
+                <circle r="46" fill="none" stroke="#f18ca155" stroke-width="2"/>
+              </g>
+              <g transform="translate(-22 -6) scale(1.1)">
+                <path d="M60 0c0 30-24 54-54 54S-48 30-48 0s24-54 54-54S60-30 60 0z" fill="#f18ca122"/>
+                <path d="M0-54c18 10 24 26 24 36s-8 22-24 22-24-12-24-22 6-26 24-36z" fill="#b94e6222"/>
+              </g>
+            </g>
+          </svg>
+          <div style="position:absolute; inset:auto 1rem 1rem auto; background:var(--grad); color:#fff; padding:.45rem .7rem; border-radius:999px; font-size:.8rem; box-shadow:0 8px 20px #f18ca140">🌹 Rose of Sharon</div>
+        </div>
+      </div>
+    </div>
+    <span class="rose-ring" aria-hidden="true"></span>
   </section>
 
-  <footer class="site-footer">
-    <p>&copy; 2025 Bible Love Rose. All rights reserved.</p>
+  <!-- ===================== VERSES ===================== -->
+  <section class="section container" aria-labelledby="verses">
+    <h3 id="verses">Scriptures That Bloom</h3>
+    <div class="carousel" id="carousel" aria-roledescription="carousel">
+      <div class="slides" id="slides">
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="1 of 4">
+          <blockquote>“I am the rose of Sharon, and the lily of the valleys.”</blockquote>
+          <cite>Song of Solomon 2:1</cite>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="2 of 4">
+          <blockquote>“Above all, love each other deeply, because love covers a multitude of sins.”</blockquote>
+          <cite>1 Peter 4:8</cite>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="3 of 4">
+          <blockquote>“Your word is a lamp to my feet and a light to my path.”</blockquote>
+          <cite>Psalm 119:105</cite>
+        </div>
+        <div class="slide" role="group" aria-roledescription="slide" aria-label="4 of 4">
+          <blockquote>“Let all that you do be done in love.”</blockquote>
+          <cite>1 Corinthians 16:14</cite>
+        </div>
+      </div>
+      <button class="car-btn car-prev" id="prev" aria-label="Previous verse">❮</button>
+      <button class="car-btn car-next" id="next" aria-label="Next verse">❯</button>
+      <div class="controls" role="tablist" aria-label="Verse selectors">
+        <button class="dot" role="tab" aria-controls="slide-1" aria-selected="true" aria-current="true"></button>
+        <button class="dot" role="tab" aria-controls="slide-2" aria-selected="false"></button>
+        <button class="dot" role="tab" aria-controls="slide-3" aria-selected="false"></button>
+        <button class="dot" role="tab" aria-controls="slide-4" aria-selected="false"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FEATURES ===================== -->
+  <section class="section container">
+    <div class="features">
+      <article class="card">
+        <span class="badge">Devotionals</span>
+        <h4>Quiet Moments</h4>
+        <p>Short reflections to guide prayer and cultivate a heart that listens.</p>
+      </article>
+
+      <article class="card">
+        <span class="badge">Community</span>
+        <h4>Love in Action</h4>
+        <p>Stories of hope and ways to serve with gentleness and courage.</p>
+      </article>
+
+      <article class="card">
+        <span class="badge">Scripture</span>
+        <h4>Light for the Path</h4>
+        <p>Verses to memorize and meditate on—daily bread for the soul.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===================== NEWSLETTER ===================== -->
+  <section class="section container" id="newsletter" aria-labelledby="signup">
+    <div class="newsletter">
+      <div>
+        <h3 id="signup" style="margin:0 0 .3rem">Get the Daily Rose</h3>
+        <p class="sub" style="margin:0">One short verse + reflection delivered to your inbox each morning.</p>
+      </div>
+      <form class="form" id="form" novalidate>
+        <label class="sr-only" for="email">Email</label>
+        <input id="email" class="input" type="email" name="email" placeholder="you@example.com" autocomplete="email" required />
+        <button class="btn btn-rose cta" type="submit">Subscribe</button>
+        <div id="hint" class="hint" role="status" aria-live="polite"></div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer">
+    <p>© <span id="year"></span> Bible • Love • Rose — Made with grace &nbsp;🌹</p>
   </footer>
 
-  <script src="script.js"></script>
+  <script>
+    // ------------------------------
+    // Theme Toggle (persist + meta)
+    // ------------------------------
+    const html = document.documentElement;
+    const themeBtn = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeMeta = document.getElementById('theme-color');
+
+    function applyThemeIcon(){
+      const dark = html.classList.contains('dark');
+      themeBtn.setAttribute('aria-pressed', String(dark));
+      themeIcon.textContent = dark ? '☀️' : '🌙';
+      themeMeta.content = dark ? '#0f1115' : '#ffffff';
+    }
+    applyThemeIcon();
+
+    themeBtn.addEventListener('click', () => {
+      const dark = html.classList.toggle('dark');
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      applyThemeIcon();
+    });
+
+    // Update icon if OS preference changes and no explicit choice saved
+    try {
+      const mq = window.matchMedia('(prefers-color-scheme: dark)');
+      mq.addEventListener?.('change', (e) => {
+        if(!localStorage.getItem('theme')){
+          html.classList.toggle('dark', e.matches);
+          applyThemeIcon();
+        }
+      });
+    } catch(e){}
+
+    // ------------------------------
+    // Verse Carousel
+    // ------------------------------
+    const slides = document.getElementById('slides');
+    const dots = Array.from(document.querySelectorAll('.dot'));
+    const prev = document.getElementById('prev');
+    const next = document.getElementById('next');
+
+    let index = 0;
+    const COUNT = slides.children.length;
+    const DUR = 7000; // autoplay interval
+
+    function go(i){
+      index = (i + COUNT) % COUNT;
+      slides.style.transform = `translateX(-${index * 100}%)`;
+      dots.forEach((d, n) => {
+        d.setAttribute('aria-selected', String(n === index));
+        d.setAttribute('aria-current', n === index ? 'true' : 'false');
+      });
+    }
+
+    prev.addEventListener('click', () => go(index - 1));
+    next.addEventListener('click', () => go(index + 1));
+    dots.forEach((d, n) => d.addEventListener('click', () => go(n)));
+
+    // Keyboard support
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'ArrowLeft') go(index - 1);
+      if(e.key === 'ArrowRight') go(index + 1);
+    });
+
+    // Autoplay with pause on hover
+    let timer = null, paused = false;
+    const carousel = document.getElementById('carousel');
+
+    function start(){
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      stop();
+      timer = setInterval(() => { if(!paused) go(index + 1); }, DUR);
+    }
+    function stop(){ if(timer) clearInterval(timer) }
+
+    carousel.addEventListener('mouseenter', () => paused = true);
+    carousel.addEventListener('mouseleave', () => paused = false);
+
+    start();
+
+    // ------------------------------
+    // Newsletter (client-side demo)
+    // ------------------------------
+    const form = document.getElementById('form');
+    const email = document.getElementById('email');
+    const hint = document.getElementById('hint');
+
+    function validEmail(v){
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const v = email.value.trim();
+      if(!v || !validEmail(v)){
+        hint.textContent = 'Please enter a valid email.';
+        hint.style.color = 'var(--rose-600)';
+        email.focus();
+        return;
+      }
+      hint.textContent = 'Thanks! Check your inbox for a confirmation.';
+      hint.style.color = 'var(--muted)';
+      form.reset();
+    });
+
+    // ------------------------------
+    // Footer year
+    // ------------------------------
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
