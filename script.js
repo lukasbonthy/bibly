@@ -1,15 +1,17 @@
-// Theme toggler script
 const toggleBtn = document.getElementById('theme-toggle');
 const html = document.documentElement;
 
-// Load stored preference
-(function() {
+// Load user preference
+(function () {
   const saved = localStorage.getItem('theme');
-  if (saved === 'dark') html.classList.add('dark');
+  if (saved === 'dark') {
+    html.classList.add('dark');
+    toggleBtn.textContent = '☀️';
+  }
 })();
 
 toggleBtn.addEventListener('click', () => {
-  html.classList.toggle('dark');
-  const mode = html.classList.contains('dark') ? 'dark' : 'light';
-  localStorage.setItem('theme', mode);
+  const isDark = html.classList.toggle('dark');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  toggleBtn.textContent = isDark ? '☀️' : '🌙';
 });
